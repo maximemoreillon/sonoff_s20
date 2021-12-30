@@ -1,16 +1,16 @@
 void MQTT_setup(){
-  Serial.println(F("[MQTT] MQTT setup"));
-  MQTT_client.setServer(MQTT_BROKER_ADDRESS, MQTT_PORT);
+  Serial.print(F("[MQTT] Initializing MQTT with broker "));
+  Serial.print(config.mqtt.broker.host);
+  Serial.print(":");
+  Serial.println(config.mqtt.broker.port);
+  MQTT_client.setServer(config.mqtt.broker.host.c_str(), config.mqtt.broker.port);
   MQTT_client.setCallback(mqtt_message_callback);
 }
 
-boolean mqtt_connected(){
-  return MQTT_client.connected();
-}
+
 
 String get_mqtt_base_topic(){
-  String mqtt_username = read_string_from_eeprom(EEPROM_MQTT_USERNAME_ADDRESS);
-  return "/" + mqtt_username + "/" + get_device_name();
+  return "/" + config.mqtt.username + "/" + get_device_name();
 }
 
 String get_mqtt_status_topic(){
@@ -20,13 +20,7 @@ String get_mqtt_status_topic(){
 String get_mqtt_command_topic(){
   return get_mqtt_base_topic() + "/command";
 }
-String get_mqtt_username(){
-  return read_string_from_eeprom(EEPROM_MQTT_USERNAME_ADDRESS);
-}
 
-String get_mqtt_password(){
-  return read_string_from_eeprom(EEPROM_MQTT_PASSWORD_ADDRESS);
-}
 
 void MQTT_connection_manager(){
 
@@ -34,10 +28,10 @@ void MQTT_connection_manager(){
   
   static long last_connection_attempt;
   
-  if(mqtt_connected() != last_connection_state) {
-    last_connection_state = mqtt_connected();
+  if(MQTT_client.connected() != last_connection_state) {
+    last_connection_state = MQTT_client.connected();
 
-    if(mqtt_connected()){
+    if(MQTT_client.connected()){
       // Changed from disconnected to connected
       Serial.println(F("[MQTT] Connected"));
       
@@ -56,7 +50,7 @@ void MQTT_connection_manager(){
   }
 
   // Kind of similar to the pubsubclient example, one connection attempt every 5 seconds
-  if(!mqtt_connected()){
+  if(!MQTT_client.connected()){
     if(millis() - last_connection_attempt > MQTT_RECONNECT_PERIOD){
       last_connection_attempt = millis();
 
@@ -65,23 +59,21 @@ void MQTT_connection_manager(){
       
       Serial.println(F("[MQTT] Connecting"));
 
-      String mqtt_password = read_string_from_eeprom(EEPROM_MQTT_PASSWORD_ADDRESS);
-
       // Last will
       StaticJsonDocument<MQTT_MAX_PACKET_SIZE> outbound_JSON_message;
   
       outbound_JSON_message["connected"] = false;
       outbound_JSON_message["type"] = DEVICE_TYPE;
       outbound_JSON_message["firmware_version"] = DEVICE_FIRMWARE_VERSION;
-      outbound_JSON_message["nickname"] = get_device_nickname();
+      outbound_JSON_message["nickname"] = config.nickname;
 
       char mqtt_last_will[MQTT_MAX_PACKET_SIZE];
       serializeJson(outbound_JSON_message, mqtt_last_will, sizeof(mqtt_last_will));
       
       MQTT_client.connect(
         get_device_name().c_str(),
-        get_mqtt_username().c_str(), 
-        mqtt_password.c_str(),
+        config.mqtt.username.c_str(), 
+        config.mqtt.password.c_str(),
         get_mqtt_status_topic().c_str(),
         MQTT_QOS,
         MQTT_RETAIN,
@@ -114,28 +106,20 @@ void mqtt_message_callback(char* topic, byte* payload, unsigned int payload_leng
     const char* command = inbound_JSON_message["state"];  
     
     if( strcmp(command, "on")==0 ) {
-      device_state = "on";
       turn_on();
-      mqtt_publish_state();
     }
     else if( strcmp(command, "off")==0 ) {
-      device_state = "off";
       turn_off();
-      mqtt_publish_state();
     }
     
   }
   else {
     Serial.println("[MQTTT] Payload is NOT JSON with state");
     if(strncmp((char*) payload, "on", payload_length) == 0){
-      device_state = "on";
       turn_on();
-      mqtt_publish_state();
     }
     else if(strncmp((char*) payload, "off", payload_length) == 0){
-      device_state = "off";
       turn_off();
-      mqtt_publish_state();
     }
   }
   
@@ -152,9 +136,9 @@ void mqtt_publish_state(){
   StaticJsonDocument<MQTT_MAX_PACKET_SIZE> outbound_JSON_message;
   
   outbound_JSON_message["connected"] = true;
-  outbound_JSON_message["state"] = device_state;
+  outbound_JSON_message["state"] = get_device_state();
   outbound_JSON_message["type"] = DEVICE_TYPE;
-  outbound_JSON_message["nickname"] = get_device_nickname();
+  outbound_JSON_message["nickname"] = config.nickname;
   outbound_JSON_message["firmware_version"] = DEVICE_FIRMWARE_VERSION;
   
   char mqtt_payload[MQTT_MAX_PACKET_SIZE];

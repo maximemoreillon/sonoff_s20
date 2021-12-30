@@ -1,5 +1,7 @@
 void IO_setup(){
 
+  Serial.println("[IO] IO setup");
+  
   pinMode(BUTTON_PIN, INPUT);
   pinMode(LED_PIN, OUTPUT);
   pinMode(RELAY_PIN, OUTPUT);
@@ -12,12 +14,25 @@ void turn_on(){
   digitalWrite(LED_PIN, LOW); // LED is active LOW
   digitalWrite(RELAY_PIN, HIGH);
   Serial.println("[IO] Turning on");
+  mqtt_publish_state();
 }
 
 void turn_off(){
   digitalWrite(LED_PIN, HIGH); // LED is active LOW
   digitalWrite(RELAY_PIN, LOW);
   Serial.println("[IO] Turning off");
+  mqtt_publish_state();
+}
+
+void toggle(){
+  Serial.println("[IO] Toggling");
+  if(digitalRead(RELAY_PIN)) turn_off();
+  else turn_on();
+}
+
+String get_device_state(){
+  if(digitalRead(RELAY_PIN)) return "on";
+  else return "off";
 }
 
 void read_button()
@@ -52,7 +67,8 @@ void read_button()
       // APPLICATION DEPENDENT FROM HERE
       if(button_state == LOW)
       {
-        Serial.println("Button pressed");
+        Serial.println("[IO] Button pressed");
+        toggle();
 
 
       }

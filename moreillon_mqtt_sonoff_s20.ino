@@ -2,25 +2,24 @@
  * CUSTOM SONOFF S20 FIRMWARE
  * Maxime MOREILLON
  * 
- * Board type: Generic ESP8266
- * Flash mode: DOUT
+ * Board type: ITEAD Sonoff S20
  */
 
 // Libraries
 #include <ESP8266WiFi.h> // Main ESP8266 library
 #include <PubSubClient.h> // MQTT
-#include <WiFiClientSecure.h> // Wifi client, used by MQTT
-#include <ESPAsyncTCP.h>
-#include <ESPAsyncWebServer.h>
-#include <EEPROM.h> // EEPROM for saving settings
+#include <ESPAsyncWebServer.h> // Web server
+#include <ESPAsyncTCP.h> // Required for web server
+#include <Updater.h> // OTA updates
 #include <DNSServer.h> // DNS server to redirect wifi clients to the web server
 #include <ArduinoJson.h> // JSON, used for the formatting of messages sent to the server
-#include <Updater.h>
-#include <ESP8266mDNS.h>
+#include <ESP8266mDNS.h> // Another DNS, to make the device easily accessible on a network
+#include <LittleFS.h> // SPIFFS file system
+
 
 // Information to identify the device
 #define DEVICE_TYPE "socket"
-#define DEVICE_FIRMWARE_VERSION "0.0.21"
+#define DEVICE_FIRMWARE_VERSION "0.2.3"
 
 // Pin mapping
 #define RELAY_PIN 12
@@ -29,26 +28,16 @@
 
 // MQTT settings
 #define MQTT_RECONNECT_PERIOD 1000
-#define MQTT_BROKER_ADDRESS "mqtt.iot.maximemoreillon.com"
-#define MQTT_PORT 30883
 #define MQTT_QOS 1
 #define MQTT_RETAIN true
 
-// EEPROM
-#define EEPROM_WIFI_SSID_ADDRESS 0
-#define EEPROM_WIFI_PASSWORD_ADDRESS 100
-#define EEPROM_MQTT_USERNAME_ADDRESS 200
-#define EEPROM_MQTT_PASSWORD_ADDRESS 300
-#define EEPROM_DEVICE_NICKNAME_ADDRESS 400
-
 // WIFI settings
+#define WIFI_STA_CONNECTION_TIMEOUT 20000
 #define WIFI_AP_IP IPAddress(192, 168, 4, 1)
-
-// Web server settings
-#define WEB_SERVER_PORT 80
 
 // MISC
 #define DNS_PORT 53
+#define WEB_SERVER_PORT 80
 
 // Initialize objects
 WiFiClientSecure wifi_client; 
@@ -57,8 +46,34 @@ AsyncWebServer web_server(WEB_SERVER_PORT);
 DNSServer dns_server; 
 
 // Global variables
-String device_state = "off";
 String wifi_mode = "STA";
+boolean reboot = false;
+
+// Need a custom structure to hold device config
+struct WifiConfig {
+  String ssid;
+  String password;
+};
+
+struct MqttBrokerConfig {
+  String host;
+  int port;
+};
+
+struct MqttConfig {
+  MqttBrokerConfig broker;
+  String username;
+  String password;
+};
+
+struct DeviceConfig {
+  String nickname;
+  WifiConfig wifi;
+  MqttConfig mqtt;
+};
+
+DeviceConfig config;
+
 
 void setup()
 {
@@ -66,10 +81,11 @@ void setup()
   delay(10);
 
   Serial.begin(115200);
-  Serial.println("Smart switch");
+  Serial.println("Smart outlet");
 
   IO_setup();
-  EEPROM.begin(512);
+  spiffs_setup();
+  get_config_from_spiffs();
   wifi_client.setInsecure();
   wifi_setup();
   MQTT_setup();
@@ -85,4 +101,6 @@ void loop() {
   MQTT_client.loop();
   dns_server.processNextRequest();
   MDNS.update();
+  handle_reboot();
+  read_button();
 }
