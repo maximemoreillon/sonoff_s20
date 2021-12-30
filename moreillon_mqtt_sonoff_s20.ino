@@ -46,7 +46,6 @@ AsyncWebServer web_server(WEB_SERVER_PORT);
 DNSServer dns_server; 
 
 // Global variables
-String wifi_mode = "STA";
 boolean reboot = false;
 
 // Need a custom structure to hold device config
@@ -77,9 +76,6 @@ DeviceConfig config;
 
 void setup()
 {
-  // Mandatory initial delay
-  delay(10);
-
   Serial.begin(115200);
   Serial.println("Smart outlet");
 

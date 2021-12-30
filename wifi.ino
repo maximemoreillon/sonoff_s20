@@ -12,6 +12,8 @@ void attempt_sta(){
   WiFi.mode(WIFI_STA);
   WiFi.hostname(get_device_name());
 
+  
+
   String wifi_sta_ssid = config.wifi.ssid;
   String wifi_sta_password = config.wifi.password;
   
@@ -35,11 +37,12 @@ void attempt_sta(){
 
 void wifi_setup() {
   
-  Serial.println(F("[WiFi] Wifi starting"));
+  Serial.println("[WiFi] Wifi starting");
   attempt_sta();
 
   if(wifi_connected()){
-    Serial.println("[Wifi] Wifi connected");
+    Serial.print("[WIFI] Connected, IP: ");
+    Serial.println(WiFi.localIP());
   }
 
   else {
@@ -61,9 +64,6 @@ void wifi_setup() {
 
     // Debugging
     Serial.println("[WiFi] Access point initialized");
-
-    // Experiment
-    wifi_mode = "AP";
   }
 
 }
@@ -75,18 +75,16 @@ void wifi_connection_manager(){
 
   static boolean last_connection_state = false;
 
-  
-
   if(wifi_connected() != last_connection_state) {
     last_connection_state = wifi_connected();
 
 
     if(wifi_connected()){
-      Serial.print(F("[WIFI] Connected, IP: "));
+      Serial.print("[WIFI] Connected, IP: ");
       Serial.println(WiFi.localIP());
     }
     else {
-      Serial.println(F("[WIFI] Disconnected"));
+      Serial.println("[WIFI] Disconnected");
     }
   }
 

@@ -48,9 +48,4 @@ void get_config_from_spiffs(){
   config.mqtt.username = doc["mqtt"]["username"].as<String>();
   config.mqtt.password = doc["mqtt"]["password"].as<String>();
 
-  
-
-  
-
-  
 }

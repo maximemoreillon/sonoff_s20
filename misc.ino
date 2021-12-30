@@ -1,8 +1,6 @@
 String get_device_name(){
-  String chip_id = String(ESP.getChipId(), HEX);
-  return String(DEVICE_TYPE) + "-" + chip_id;
+  return String(DEVICE_TYPE) + "-" + String(ESP.getChipId(), HEX);
 }
-
 
 void delayed_reboot(){
   reboot = true;

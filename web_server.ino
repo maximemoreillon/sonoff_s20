@@ -1,5 +1,3 @@
-#define U_PART U_FS
-
 class CaptiveRequestHandler : public AsyncWebHandler {
   // Captive portal 
   
@@ -33,7 +31,7 @@ String processor(const String& var){
   else if(var == "MQTT_PASSWORD") return config.mqtt.password;
   else if(var == "MQTT_STATUS") return MQTT_client.connected() ? "connected" : "disconnected";
   
-  else if(var == "WIFI_MODE") return wifi_mode;
+  else if(var == "WIFI_MODE") return String(WiFi.getMode());
   else if(var == "WIFI_SSID") return config.wifi.ssid;
   else if(var == "WIFI_SSID") return config.wifi.password;
 
@@ -45,7 +43,7 @@ String reboot_html = ""
 
 
 void web_server_setup(){
-  Serial.println(F("[Web server] Web server initialization"));
+  Serial.println("[Web server] Web server initialization");
   
   web_server.serveStatic("/", LittleFS, "/www")
     .setDefaultFile("index.html")
@@ -110,23 +108,21 @@ void update_settings(AsyncWebServerRequest *request) {
 }
 
 void handleDoUpdate(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final) {
+  
   if (!index){
-    Serial.println("Update");
-    size_t content_len = request->contentLength();
-    Serial.println(content_len);
-    // if filename includes spiffs, update the spiffs partition
-    int cmd = (filename.indexOf("spiffs") > -1) ? U_PART : U_FLASH;
+    Serial.printf("[Update] Start: %s\n", filename.c_str());
     Update.runAsync(true);
-    if (!Update.begin(content_len, cmd)) {
+    if(!Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000)){
       Update.printError(Serial);
     }
   }
 
-  if (Update.write(data, len) != len) {
-    Update.printError(Serial);
-  } else {
-    Serial.printf("Progress: %d%%\n", (Update.progress()*100)/Update.size());
+  if(!Update.hasError()){
+    if(Update.write(data, len) != len){
+      Update.printError(Serial);
+    }
   }
+
 
   if (final) {
     if (!Update.end(true)){
@@ -135,7 +131,6 @@ void handleDoUpdate(AsyncWebServerRequest *request, const String& filename, size
     } 
     else {
       Serial.println("Update complete");
-      Serial.flush();
       request->send(200, "text/html", reboot_html);
       delayed_reboot();
     }
