@@ -20,7 +20,7 @@
 
 // Information to identify the device
 #define DEVICE_TYPE "socket"
-#define DEVICE_FIRMWARE_VERSION "0.3.0"
+#define DEVICE_FIRMWARE_VERSION "0.3.1"
 
 // Pin mapping
 #define RELAY_PIN 12

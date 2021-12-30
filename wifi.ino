@@ -6,6 +6,17 @@ String get_softap_ssid(){
   return get_device_name();
 }
 
+String get_wifi_mode(){
+  switch (WiFi.getMode()) {
+    case 1:
+      return "STA";
+    case 2:
+      return "AP";
+    default:
+      return "unknown";
+  }
+}
+
 void attempt_sta(){
   
   WiFi.persistent(false);

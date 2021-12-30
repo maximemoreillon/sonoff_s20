@@ -12,13 +12,12 @@ class CaptiveRequestHandler : public AsyncWebHandler {
     }
   
     void handleRequest(AsyncWebServerRequest *request) {
-      request->send(LittleFS, "/index.html", String(), false, processor);
+      request->send(LittleFS, "/www/index.html", String(), false, processor);
     }
 };
 
 String processor(const String& var){
 
-  
   if(var == "DEVICE_NAME") return get_device_name();
   else if(var == "DEVICE_TYPE") return DEVICE_TYPE;
   else if(var == "DEVICE_FIRMWARE_VERSION") return DEVICE_FIRMWARE_VERSION;
@@ -31,7 +30,7 @@ String processor(const String& var){
   else if(var == "MQTT_PASSWORD") return config.mqtt.password;
   else if(var == "MQTT_STATUS") return MQTT_client.connected() ? "connected" : "disconnected";
   
-  else if(var == "WIFI_MODE") return String(WiFi.getMode());
+  else if(var == "WIFI_MODE") return get_wifi_mode();
   else if(var == "WIFI_SSID") return config.wifi.ssid;
   else if(var == "WIFI_SSID") return config.wifi.password;
 
