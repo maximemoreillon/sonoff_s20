@@ -17,11 +17,8 @@ void attempt_sta(){
   String wifi_sta_ssid = config.wifi.ssid;
   String wifi_sta_password = config.wifi.password;
   
-  // Debugging
   Serial.print("[WiFi] Attempting connection to ");
-  Serial.print(wifi_sta_ssid);
-  Serial.print(", with password: ");
-  Serial.println(wifi_sta_password);
+  Serial.println(wifi_sta_ssid);
 
   // Use password or not depending of if provided
   if(wifi_sta_password == "") WiFi.begin(wifi_sta_ssid.c_str());

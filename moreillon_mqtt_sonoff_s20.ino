@@ -3,6 +3,7 @@
  * Maxime MOREILLON
  * 
  * Board type: ITEAD Sonoff S20
+ * SSL support: basic
  */
 
 // Libraries
@@ -12,14 +13,14 @@
 #include <ESPAsyncTCP.h> // Required for web server
 #include <Updater.h> // OTA updates
 #include <DNSServer.h> // DNS server to redirect wifi clients to the web server
-#include <ArduinoJson.h> // JSON, used for the formatting of messages sent to the server
+#include <ArduinoJson.h> // JSON library
 #include <ESP8266mDNS.h> // Another DNS, to make the device easily accessible on a network
 #include <LittleFS.h> // SPIFFS file system
 
 
 // Information to identify the device
 #define DEVICE_TYPE "socket"
-#define DEVICE_FIRMWARE_VERSION "0.2.3"
+#define DEVICE_FIRMWARE_VERSION "0.3.0"
 
 // Pin mapping
 #define RELAY_PIN 12

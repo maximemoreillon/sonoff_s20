@@ -11,14 +11,12 @@ void IO_setup(){
 }
 
 void turn_on(){
-  digitalWrite(LED_PIN, LOW); // LED is active LOW
   digitalWrite(RELAY_PIN, HIGH);
   Serial.println("[IO] Turning on");
   mqtt_publish_state();
 }
 
 void turn_off(){
-  digitalWrite(LED_PIN, HIGH); // LED is active LOW
   digitalWrite(RELAY_PIN, LOW);
   Serial.println("[IO] Turning off");
   mqtt_publish_state();
@@ -37,7 +35,7 @@ String get_device_state(){
 
 void read_button()
 {
-  const long button_debounce_delay = 50;
+  const int button_debounce_delay = 50;
   static int last_button_reading;
   static long last_button_reading_change_time;
   static int button_state = LOW; // Output
@@ -69,8 +67,6 @@ void read_button()
       {
         Serial.println("[IO] Button pressed");
         toggle();
-
-
       }
     }
   }

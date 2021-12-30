@@ -68,11 +68,12 @@ void handle_not_found(AsyncWebServerRequest *request){
 }
 
 void save_config(AsyncWebServerRequest *request){
-  DynamicJsonDocument doc(1024);
+  
+  StaticJsonDocument<1024> doc;
+  
   doc["nickname"] = request->arg("nickname");
   
   JsonObject wifi  = doc.createNestedObject("wifi");
-  
   wifi["ssid"] = request->arg("wifi_ssid");
   wifi["password"] = request->arg("wifi_password");
 
@@ -110,7 +111,15 @@ void update_settings(AsyncWebServerRequest *request) {
 void handleDoUpdate(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final) {
   
   if (!index){
-    Serial.printf("[Update] Start: %s\n", filename.c_str());
+    
+    Serial.print("[Update] Updating firmware using file ");
+    Serial.println(filename);
+    Serial.print("[Update] Size:  ");
+    Serial.print(request->contentLength());
+    Serial.print(", available: ");
+    Serial.print(ESP.getFreeSketchSpace());
+    Serial.println();
+    
     Update.runAsync(true);
     if(!Update.begin((ESP.getFreeSketchSpace() - 0x1000) & 0xFFFFF000)){
       Update.printError(Serial);

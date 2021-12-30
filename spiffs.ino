@@ -1,6 +1,4 @@
 void spiffs_setup() {
-
-  Serial.println("[LittleFS] Retrieving config from LittleFS");
   
   if (!LittleFS.begin()) {
     Serial.println("[LittleFS] Failed to mount file system");
