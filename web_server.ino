@@ -33,6 +33,9 @@ String processor(const String& var){
   else if(var == "WIFI_MODE") return get_wifi_mode();
   else if(var == "WIFI_SSID") return config.wifi.ssid;
   else if(var == "WIFI_SSID") return config.wifi.password;
+  else if(var == "WIFI_DATALIST_OPTIONS") return format_wifi_datalist_options();
+  
+  return String();
 
 }
 
@@ -44,6 +47,8 @@ String reboot_html = ""
 void web_server_setup(){
   Serial.println("[Web server] Web server initialization");
   
+  DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+
   web_server.serveStatic("/", LittleFS, "/www")
     .setDefaultFile("index.html")
     .setTemplateProcessor(processor);
@@ -56,8 +61,14 @@ void web_server_setup(){
                   size_t len, bool final) {handleDoUpdate(request, filename, index, data, len, final);}
   );
 
+  web_server.on("/upload", HTTP_POST,
+    [](AsyncWebServerRequest *request) {},
+    handleUpload);
+
   web_server.onNotFound(handle_not_found);
   web_server.addHandler(new CaptiveRequestHandler()).setFilter(ON_AP_FILTER);
+
+
   web_server.begin();
 }
 
@@ -113,7 +124,7 @@ void handleDoUpdate(AsyncWebServerRequest *request, const String& filename, size
     
     Serial.print("[Update] Updating firmware using file ");
     Serial.println(filename);
-    Serial.print("[Update] Size:  ");
+    Serial.print("[Update] Size: ");
     Serial.print(request->contentLength());
     Serial.print(", available: ");
     Serial.print(ESP.getFreeSketchSpace());
@@ -143,4 +154,29 @@ void handleDoUpdate(AsyncWebServerRequest *request, const String& filename, size
       delayed_reboot();
     }
   }
+}
+
+void handleUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
+
+  
+  if(!index){
+    Serial.printf("UploadStart: %s\n", filename.c_str());
+    const String path = "/www/" + filename;
+    request->_tempFile = LittleFS.open(path, "w");
+  }
+
+  if(len) {
+    request->_tempFile.write(data,len);
+  }
+  
+  
+  if(final){
+    Serial.printf("UploadEnd: %s, %u B\n", filename.c_str(), index+len);
+    request->_tempFile.close();
+//    request->send(200, "text/html", reboot_html);
+//    delayed_reboot();
+    request->redirect("/");
+  }
+
+  
 }

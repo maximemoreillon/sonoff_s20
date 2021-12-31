@@ -17,13 +17,36 @@ String get_wifi_mode(){
   }
 }
 
+void scan_wifi(){
+  Serial.print("[Wifi] Scan start ... ");
+  
+  found_wifi_count = WiFi.scanNetworks();
+  
+  Serial.print("[Wifi] ");
+  Serial.print(found_wifi_count);
+  Serial.println(" network(s) found");
+  
+  
+
+}
+
+String format_wifi_datalist_options(){
+  String wifi_datalist_options = "";
+  for (int i = 0; i < found_wifi_count; i++)
+  {
+    wifi_datalist_options = wifi_datalist_options + "<option value=\"" + WiFi.SSID(i) + "\">";
+  }
+  return wifi_datalist_options;
+}
+
 void attempt_sta(){
   
   WiFi.persistent(false);
   WiFi.mode(WIFI_STA);
+  WiFi.disconnect();
   WiFi.hostname(get_device_name());
 
-  
+  scan_wifi();
 
   String wifi_sta_ssid = config.wifi.ssid;
   String wifi_sta_password = config.wifi.password;

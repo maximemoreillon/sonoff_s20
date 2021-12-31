@@ -20,7 +20,7 @@
 
 // Information to identify the device
 #define DEVICE_TYPE "socket"
-#define DEVICE_FIRMWARE_VERSION "0.3.1"
+#define DEVICE_FIRMWARE_VERSION "0.3.3"
 
 // Pin mapping
 #define RELAY_PIN 12
@@ -48,6 +48,7 @@ DNSServer dns_server;
 
 // Global variables
 boolean reboot = false;
+int found_wifi_count = 0;
 
 // Need a custom structure to hold device config
 struct WifiConfig {

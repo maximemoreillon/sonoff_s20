@@ -22,10 +22,6 @@
           <td>%DEVICE_STATE%</td>
         </tr>
         <tr>
-          <th>Current version</th>
-          <td>%DEVICE_FIRMWARE_VERSION%</td>
-        </tr>
-        <tr>
           <th>Nickname</th>
           <td>
             <input
@@ -137,6 +133,10 @@
       <h2>Firmware</h2>
       <table>
         <tr>
+          <th>Current version</th>
+          <td>%DEVICE_FIRMWARE_VERSION%</td>
+        </tr>
+        <tr>
           <th>Firmware update</th>
           <td>
             <input type='file' name='update'>
@@ -144,6 +144,26 @@
           </td>
         </tr>
       </table>
+    </form>
+
+    <form
+      method='POST'
+      action='/upload'
+      enctype='multipart/form-data'>
+
+      <h2>File upload</h2>
+      <table>
+        <tr>
+          <th>
+            File upload
+          </th>
+          <td>
+            <input type='file' name='update'>
+            <input type='submit' value='Update'>
+          </td>
+        </tr>
+      </table>
+
     </form>
 
 
