@@ -13,24 +13,21 @@ void IO_setup(){
 void turn_on(){
   digitalWrite(RELAY_PIN, HIGH);
   Serial.println("[IO] Turning on");
-  mqtt_publish_state();
+  iot_kernel.device_state = "on";
+  iot_kernel.mqtt_publish_state();
 }
 
 void turn_off(){
   digitalWrite(RELAY_PIN, LOW);
   Serial.println("[IO] Turning off");
-  mqtt_publish_state();
+  iot_kernel.device_state = "off";
+  iot_kernel.mqtt_publish_state();
 }
 
 void toggle(){
   Serial.println("[IO] Toggling");
   if(digitalRead(RELAY_PIN)) turn_off();
   else turn_on();
-}
-
-String get_device_state(){
-  if(digitalRead(RELAY_PIN)) return "on";
-  else return "off";
 }
 
 void read_button()
