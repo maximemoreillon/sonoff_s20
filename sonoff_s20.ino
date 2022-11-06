@@ -6,10 +6,10 @@
  * SSL support: basic
  */
 
-#include "iotKernel.h"
+#include "IotKernel.h"
 
 #define DEVICE_TYPE "outlet"
-#define DEVICE_FIRMWARE_VERSION "0.4.0"
+#define DEVICE_FIRMWARE_VERSION "0.4.1"
 
 // Pin mapping
 #define RELAY_PIN 12
@@ -23,6 +23,7 @@ void setup() {
   iot_kernel.init();
   IO_setup();
   iot_kernel.mqtt.setCallback(mqtt_message_callback);
+  http_config();
 }
 
 
